@@ -226,6 +226,29 @@
             });
         }
 
+        function generateReport() {
+            return projects.map(p => {
+                const status = p.expired ? 'Expirado' : `${Math.ceil((p.deadline - Date.now()) / (1000 * 60 * 60 * 24))} dias restantes`;
+                return `${p.name}: ${status}`;
+            }).join('\n');
+        }
+
+        function sendEmailReport() {
+            const report = generateReport();
+            emails.forEach(email => {
+                const link = `mailto:${email}?subject=Relatório de Projetos&body=${encodeURIComponent(report)}`;
+                window.open(link, '_blank');
+            });
+        }
+
+        function sendWhatsAppReport() {
+            const report = generateReport();
+            phones.forEach(phone => {
+                const link = `https://wa.me/${phone}?text=${encodeURIComponent(report)}`;
+                window.open(link, '_blank');
+            });
+        }
+
         function addEmail(email) {
             emails.push(email);
             saveEmails();
@@ -286,7 +309,7 @@
         function updateCountdown(id) {
             const project = projects.find(p => p.id === id);
             if (project && !project.expired) {
-                const countdownElement = document.getElementById(`countdown-${id}`);
+                const countdownElement = document.getElementById(`countdown-${project.id}`);
                 const interval = setInterval(() => {
                     const now = Date.now();
                     const remainingTime = project.deadline - now;
@@ -334,6 +357,9 @@
                 document.getElementById('add-phone-form').reset();
             }
         });
+
+        sendEmailNowButton.addEventListener('click', sendEmailReport);
+        sendWhatsAppNowButton.addEventListener('click', sendWhatsAppReport);
 
         renderProjects();
         renderContacts();
