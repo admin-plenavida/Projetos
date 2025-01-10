@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Projetos</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url('https://via.placeholder.com/1200x800?text=Rel%C3%B3gios') no-repeat center center fixed;
+            background-size: cover;
+            color: #000;
+        }
+        header {
+            background-color: #FFB74D;
+            color: white;
+            text-align: center;
+            padding: 1em 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        main {
+            margin: 20px auto;
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            color: #FF6F00;
+            font-size: 1.25rem;
+            margin-bottom: 15px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, button {
+            padding: 12px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        input {
+            width: calc(100% - 20px);
+            background-color: #fff;
+            color: #000;
+            outline: none;
+        }
+        button {
+            background-color: #FF9800;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #FB8C00;
+        }
+        .project {
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            background-color: #fff;
+            margin-bottom: 15px;
+        }
+        .project.expired {
+            border-color: #E57373;
+            background-color: #FFEBEE;
+        }
+        .project .project-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .project-actions button {
+            padding: 8px;
+            font-size: 0.8rem;
+            background-color: #FF9800;
+            border-radius: 6px;
+            border: none;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .project-actions button:hover {
+            background-color: #FB8C00;
+        }
+        .countdown {
+            font-size: 1.1rem;
+            color: #FF6F00;
+            text-align: center;
+            margin-top: 10px;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            background: #fff;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid #ddd;
+        }
+        #contact-list li {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        #contact-list .email, #contact-list .phone {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        Gestor de Projetos
+    </header>
+    <main>
+        <h2>Adicionar Novo Projeto</h2>
+        <form id="add-project-form">
+            <input type="text" id="project-name" placeholder="Nome do projeto" required>
+            <button type="submit">Adicionar Projeto</button>
+        </form>
