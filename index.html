@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -128,3 +127,216 @@
             <input type="text" id="project-name" placeholder="Nome do projeto" required>
             <button type="submit">Adicionar Projeto</button>
         </form>
+
+        <h2>Projetos Ativos</h2>
+        <div id="active-projects"></div>
+
+        <h2>Projetos Expirados</h2>
+        <div id="expired-projects"></div>
+
+        <h2>Gerenciar Contatos</h2>
+        <form id="add-contact-form">
+            <input type="email" id="contact-email" placeholder="Adicionar e-mail para notificações">
+            <button type="submit">Adicionar Email</button>
+        </form>
+        <form id="add-phone-form">
+            <input type="text" id="contact-phone" placeholder="Adicionar telefone para WhatsApp">
+            <button type="submit">Adicionar Telefone</button>
+        </form>
+        <h3>Emails:</h3>
+        <ul id="email-list"></ul>
+        <h3>Telefones:</h3>
+        <ul id="phone-list"></ul>
+
+        <h2>Disparar Relatório</h2>
+        <button id="send-email-now">Enviar Relatório por E-mail</button>
+        <button id="send-whatsapp-now">Enviar Relatório por WhatsApp</button>
+    </main>
+
+    <script>
+        const activeProjectsDiv = document.getElementById('active-projects');
+        const expiredProjectsDiv = document.getElementById('expired-projects');
+        const addProjectForm = document.getElementById('add-project-form');
+        const emailList = document.getElementById('email-list');
+        const phoneList = document.getElementById('phone-list');
+        const sendEmailNowButton = document.getElementById('send-email-now');
+        const sendWhatsAppNowButton = document.getElementById('send-whatsapp-now');
+
+        let projects = JSON.parse(localStorage.getItem('projects')) || [];
+        let emails = JSON.parse(localStorage.getItem('emails')) || [];
+        let phones = JSON.parse(localStorage.getItem('phones')) || [];
+
+        function saveProjects() {
+            localStorage.setItem('projects', JSON.stringify(projects));
+        }
+
+        function saveEmails() {
+            localStorage.setItem('emails', JSON.stringify(emails));
+        }
+
+        function savePhones() {
+            localStorage.setItem('phones', JSON.stringify(phones));
+        }
+
+        function renderProjects() {
+            activeProjectsDiv.innerHTML = '';
+            expiredProjectsDiv.innerHTML = '';
+
+            const activeProjects = projects.filter(p => !p.expired);
+            const expiredProjects = projects.filter(p => p.expired);
+
+            activeProjects.sort((a, b) => b.remainingTime - a.remainingTime);
+
+            activeProjects.forEach(project => {
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project';
+                projectDiv.innerHTML = `
+                    <div>${project.name}</div>
+                    <div class="countdown" id="countdown-${project.id}"></div>
+                    <div class="project-actions">
+                        <button onclick="extendProject('${project.id}')">Prorrogar (${project.extensions || 0})</button>
+                        <button onclick="deleteProject('${project.id}')">Excluir</button>
+                    </div>
+                `;
+                activeProjectsDiv.appendChild(projectDiv);
+                updateCountdown(project.id);
+            });
+
+            expiredProjects.forEach(project => {
+                const projectDiv = document.createElement('div');
+                projectDiv.className = 'project expired';
+                projectDiv.innerHTML = `<div>${project.name}</div><div class="countdown">Expirado</div>`;
+                expiredProjectsDiv.appendChild(projectDiv);
+            });
+        }
+
+        function renderContacts() {
+            emailList.innerHTML = '';
+            emails.forEach((email, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `${email} <button onclick="deleteEmail(${index})">Excluir</button>`;
+                emailList.appendChild(li);
+            });
+
+            phoneList.innerHTML = '';
+            phones.forEach((phone, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `${phone} <button onclick="deletePhone(${index})">Excluir</button>`;
+                phoneList.appendChild(li);
+            });
+        }
+
+        function addEmail(email) {
+            emails.push(email);
+            saveEmails();
+            renderContacts();
+        }
+
+        function deleteEmail(index) {
+            emails.splice(index, 1);
+            saveEmails();
+            renderContacts();
+        }
+
+        function addPhone(phone) {
+            phones.push(phone);
+            savePhones();
+            renderContacts();
+        }
+
+        function deletePhone(index) {
+            phones.splice(index, 1);
+            savePhones();
+            renderContacts();
+        }
+
+        function addProject(name) {
+            const now = Date.now();
+            const project = {
+                id: Date.now().toString(),
+                name,
+                deadline: now + 30 * 24 * 60 * 60 * 1000,
+                expired: false,
+                extensions: 0
+            };
+            projects.push(project);
+            saveProjects();
+            renderProjects();
+        }
+
+        function extendProject(id) {
+            const project = projects.find(p => p.id === id);
+            if (project) {
+                project.deadline += 30 * 24 * 60 * 60 * 1000;
+                project.extensions++;
+                saveProjects();
+                renderProjects();
+            }
+        }
+
+        function deleteProject(id) {
+            const index = projects.findIndex(p => p.id === id);
+            if (index > -1) {
+                projects.splice(index, 1);
+                saveProjects();
+                renderProjects();
+            }
+        }
+
+        function updateCountdown(id) {
+            const project = projects.find(p => p.id === id);
+            if (project && !project.expired) {
+                const countdownElement = document.getElementById(`countdown-${id}`);
+                const interval = setInterval(() => {
+                    const now = Date.now();
+                    const remainingTime = project.deadline - now;
+
+                    if (remainingTime <= 0) {
+                        project.expired = true;
+                        saveProjects();
+                        renderProjects();
+                        clearInterval(interval);
+                    } else {
+                        const days = Math.floor(remainingTime / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((remainingTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+                        countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                    }
+                }, 1000);
+            }
+        }
+
+        addProjectForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const projectName = document.getElementById('project-name').value;
+            if (projectName) {
+                addProject(projectName);
+                addProjectForm.reset();
+            }
+        });
+
+        document.getElementById('add-contact-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('contact-email').value;
+            if (email) {
+                addEmail(email);
+                document.getElementById('add-contact-form').reset();
+            }
+        });
+
+        document.getElementById('add-phone-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const phone = document.getElementById('contact-phone').value;
+            if (phone) {
+                addPhone(phone);
+                document.getElementById('add-phone-form').reset();
+            }
+        });
+
+        renderProjects();
+        renderContacts();
+    </script>
+</body>
+</html>
